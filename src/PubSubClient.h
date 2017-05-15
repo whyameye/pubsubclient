@@ -28,7 +28,7 @@
 
 // MQTT_KEEPALIVE : keepAlive interval in Seconds
 #ifndef MQTT_KEEPALIVE
-#define MQTT_KEEPALIVE 15
+#define MQTT_KEEPALIVE 60
 #endif
 
 // MQTT_SOCKET_TIMEOUT: socket timeout interval in Seconds
@@ -85,6 +85,7 @@ private:
    Client* _client;
    uint8_t buffer[MQTT_MAX_PACKET_SIZE];
    uint16_t nextMsgId;
+   uint16_t keepalive;
    unsigned long lastOutActivity;
    unsigned long lastInActivity;
    bool pingOutstanding;
@@ -120,6 +121,7 @@ public:
    PubSubClient& setServer(const char * domain, uint16_t port);
    PubSubClient& setCallback(MQTT_CALLBACK_SIGNATURE);
    PubSubClient& setClient(Client& client);
+   PubSubClient& setKeepalive(uint16_t ka);
    PubSubClient& setStream(Stream& stream);
 
    boolean connect(const char* id);

@@ -11,6 +11,7 @@ PubSubClient::PubSubClient() {
     this->_state = MQTT_DISCONNECTED;
     this->_client = NULL;
     this->stream = NULL;
+    this->keepalive = MQTT_KEEPALIVE;
     setCallback(NULL);
 }
 
@@ -18,6 +19,7 @@ PubSubClient::PubSubClient(Client& client) {
     this->_state = MQTT_DISCONNECTED;
     setClient(client);
     this->stream = NULL;
+    this->keepalive = MQTT_KEEPALIVE;
 }
 
 PubSubClient::PubSubClient(IPAddress addr, uint16_t port, Client& client) {
@@ -25,12 +27,14 @@ PubSubClient::PubSubClient(IPAddress addr, uint16_t port, Client& client) {
     setServer(addr, port);
     setClient(client);
     this->stream = NULL;
+    this->keepalive = MQTT_KEEPALIVE;
 }
 PubSubClient::PubSubClient(IPAddress addr, uint16_t port, Client& client, Stream& stream) {
     this->_state = MQTT_DISCONNECTED;
     setServer(addr,port);
     setClient(client);
     setStream(stream);
+    this->keepalive = MQTT_KEEPALIVE;
 }
 PubSubClient::PubSubClient(IPAddress addr, uint16_t port, MQTT_CALLBACK_SIGNATURE, Client& client) {
     this->_state = MQTT_DISCONNECTED;
@@ -38,6 +42,7 @@ PubSubClient::PubSubClient(IPAddress addr, uint16_t port, MQTT_CALLBACK_SIGNATUR
     setCallback(callback);
     setClient(client);
     this->stream = NULL;
+    this->keepalive = MQTT_KEEPALIVE;
 }
 PubSubClient::PubSubClient(IPAddress addr, uint16_t port, MQTT_CALLBACK_SIGNATURE, Client& client, Stream& stream) {
     this->_state = MQTT_DISCONNECTED;
@@ -45,6 +50,7 @@ PubSubClient::PubSubClient(IPAddress addr, uint16_t port, MQTT_CALLBACK_SIGNATUR
     setCallback(callback);
     setClient(client);
     setStream(stream);
+    this->keepalive = MQTT_KEEPALIVE;
 }
 
 PubSubClient::PubSubClient(uint8_t *ip, uint16_t port, Client& client) {
@@ -52,12 +58,14 @@ PubSubClient::PubSubClient(uint8_t *ip, uint16_t port, Client& client) {
     setServer(ip, port);
     setClient(client);
     this->stream = NULL;
+    this->keepalive = MQTT_KEEPALIVE;
 }
 PubSubClient::PubSubClient(uint8_t *ip, uint16_t port, Client& client, Stream& stream) {
     this->_state = MQTT_DISCONNECTED;
     setServer(ip,port);
     setClient(client);
     setStream(stream);
+    this->keepalive = MQTT_KEEPALIVE;
 }
 PubSubClient::PubSubClient(uint8_t *ip, uint16_t port, MQTT_CALLBACK_SIGNATURE, Client& client) {
     this->_state = MQTT_DISCONNECTED;
@@ -65,6 +73,7 @@ PubSubClient::PubSubClient(uint8_t *ip, uint16_t port, MQTT_CALLBACK_SIGNATURE, 
     setCallback(callback);
     setClient(client);
     this->stream = NULL;
+    this->keepalive = MQTT_KEEPALIVE;
 }
 PubSubClient::PubSubClient(uint8_t *ip, uint16_t port, MQTT_CALLBACK_SIGNATURE, Client& client, Stream& stream) {
     this->_state = MQTT_DISCONNECTED;
@@ -72,6 +81,7 @@ PubSubClient::PubSubClient(uint8_t *ip, uint16_t port, MQTT_CALLBACK_SIGNATURE, 
     setCallback(callback);
     setClient(client);
     setStream(stream);
+    this->keepalive = MQTT_KEEPALIVE;
 }
 
 PubSubClient::PubSubClient(const char* domain, uint16_t port, Client& client) {
@@ -79,12 +89,14 @@ PubSubClient::PubSubClient(const char* domain, uint16_t port, Client& client) {
     setServer(domain,port);
     setClient(client);
     this->stream = NULL;
+    this->keepalive = MQTT_KEEPALIVE;
 }
 PubSubClient::PubSubClient(const char* domain, uint16_t port, Client& client, Stream& stream) {
     this->_state = MQTT_DISCONNECTED;
     setServer(domain,port);
     setClient(client);
     setStream(stream);
+    this->keepalive = MQTT_KEEPALIVE;
 }
 PubSubClient::PubSubClient(const char* domain, uint16_t port, MQTT_CALLBACK_SIGNATURE, Client& client) {
     this->_state = MQTT_DISCONNECTED;
@@ -92,6 +104,7 @@ PubSubClient::PubSubClient(const char* domain, uint16_t port, MQTT_CALLBACK_SIGN
     setCallback(callback);
     setClient(client);
     this->stream = NULL;
+    this->keepalive = MQTT_KEEPALIVE;
 }
 PubSubClient::PubSubClient(const char* domain, uint16_t port, MQTT_CALLBACK_SIGNATURE, Client& client, Stream& stream) {
     this->_state = MQTT_DISCONNECTED;
@@ -99,6 +112,7 @@ PubSubClient::PubSubClient(const char* domain, uint16_t port, MQTT_CALLBACK_SIGN
     setCallback(callback);
     setClient(client);
     setStream(stream);
+    this->keepalive = MQTT_KEEPALIVE;
 }
 
 boolean PubSubClient::connect(const char *id) {
@@ -155,9 +169,9 @@ boolean PubSubClient::connect(const char *id, const char *user, const char *pass
             }
 
             buffer[length++] = v;
-
-            buffer[length++] = ((MQTT_KEEPALIVE) >> 8);
-            buffer[length++] = ((MQTT_KEEPALIVE) & 0xFF);
+	    
+            buffer[length++] = ((keepalive) >> 8);
+            buffer[length++] = ((keepalive) & 0xFF);
             length = writeString(id,buffer,length);
             if (willTopic) {
                 length = writeString(willTopic,buffer,length);
@@ -282,7 +296,7 @@ uint16_t PubSubClient::readPacket(uint8_t* lengthLength) {
 boolean PubSubClient::loop() {
     if (connected()) {
         unsigned long t = millis();
-        if ((t - lastInActivity > MQTT_KEEPALIVE*1000UL) || (t - lastOutActivity > MQTT_KEEPALIVE*1000UL)) {
+        if ((t - lastInActivity > keepalive*1000UL) || (t - lastOutActivity > keepalive*1000UL)) {
             if (pingOutstanding) {
                 this->_state = MQTT_CONNECTION_TIMEOUT;
                 _client->stop();
@@ -576,6 +590,11 @@ PubSubClient& PubSubClient::setCallback(MQTT_CALLBACK_SIGNATURE) {
 PubSubClient& PubSubClient::setClient(Client& client){
     this->_client = &client;
     return *this;
+}
+
+PubSubClient& PubSubClient::setKeepalive(uint16_t keepalive) {
+  this->keepalive = keepalive;
+  return *this;
 }
 
 PubSubClient& PubSubClient::setStream(Stream& stream){
